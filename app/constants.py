@@ -1,0 +1,4 @@
+class Constants:
+    USER_TASK_RUNNING=1
+    USER_TASK_FAILED=2
+    USER_TASK_SUCCESS=3

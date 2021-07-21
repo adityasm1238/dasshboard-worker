@@ -23,7 +23,14 @@ class Scraper:
             form['passwd'] = date
             br.submit_form(form)
             if("[]"==str(br.find_all("input",id="username"))):
-                return date
+                br.open("http://parents.msrit.edu/index.php")
+                details={}
+                n = br.find_all("div",class_="tname2")
+                details["name"]=str(n[0].string).strip()
+                j = br.find("img",class_="imagize")
+                details["image"]="http://parents.msrit.edu/"+j['src']
+                details['dob'] = date
+                return details
             date = cls.getNextDate(date,yyyy)
             if not date:
                 return None

@@ -53,7 +53,7 @@ class Scraper:
     def progress(cls,date,i,publish):
         yyyy,_,dd = cls.splitDate(date)
         if (dd%7==0 and dd!=28) or dd==1:
-            msg = cls.addSuffix(dd//7+1)+" "+cls.month_converter(int(date.split('-')[1]))+" "+str(yyyy)
+            msg = cls.addSuffix(dd//7+1)+" week of "+cls.month_converter(int(date.split('-')[1]))+" "+str(yyyy)
             publish(cur=i,msg=msg)
     
     @classmethod

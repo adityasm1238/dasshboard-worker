@@ -54,7 +54,7 @@ def status():
                     'status': 'Couldn\'t unlock'
                 }
             else:
-                usnData = UsnData(usn=usnTask.usn).exclude('dob').first()
+                usnData = UsnData.objects(usn=usnTask.usn).exclude('dob').first()
                 if usnData:
                     return {
                         'state': "SUCCESS",

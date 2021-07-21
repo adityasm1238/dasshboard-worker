@@ -42,7 +42,7 @@ def task():
 def status():
     data = request.get_json()
     task = bruteforce.AsyncResult(data['task_id'])
-    usnTask = UsnTasks.objects(task_id=data['task_id'])
+    usnTask = UsnTasks.objects(task_id=data['task_id']).first()
     if usnTask:
         if usnTask.task_status!=Constants.USER_TASK_RUNNING:
             task.forget()

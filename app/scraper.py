@@ -17,7 +17,7 @@ class Scraper:
             if verbose:
                 print(msg,end="\r")   
             if publishProgres!=None:
-                publishProgres(cur=i,msg=msg)
+                cls.progress(date,i,publishProgres)
             form = br.get_form()
             form['username'] = usn
             form['passwd'] = date
@@ -48,6 +48,25 @@ class Scraper:
         cur = msg[-1]
         n = load[(load.index(cur)+1)%4]
         return msg[:-1]+n
+    
+    @classmethod
+    def progress(cls,date,i,publish):
+        yyyy,_,dd = cls.splitDate(date)
+        if (dd%7==0 and dd!=28) or dd==1:
+            msg = cls.addSuffix(dd//7+1)+" "+cls.month_converter(int(date.split('-')[1]))+" "+str(yyyy)
+            publish(cur=i,msg=msg)
+    
+    @classmethod
+    def month_converter(cls,month):
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        return months[month+ 1]
+    
+    @classmethod
+    def addSuffix(cls,number):
+        suffix = ['th','st','nd','rd','th']
+        if number<4:
+            return str(number)+suffix[number]
+        return str(number)+suffix[4]
 
     @classmethod
     def getNextDate(cls,date,year):

@@ -1,3 +1,4 @@
+from os import name
 from flask import Blueprint,request,jsonify
 from flask_jwt_extended import get_jwt_identity,jwt_required
 from datetime import datetime,timedelta
@@ -5,6 +6,7 @@ from datetime import datetime,timedelta
 from app.error import handleErrors
 from app.models import UserTasks,UsnData,UsnTasks,FailedUsn
 from app.tasks import bruteforce
+from app.constants import Constants
 
 user = Blueprint('user',__name__,url_prefix='/user')
 
@@ -40,6 +42,28 @@ def task():
 def status():
     data = request.get_json()
     task = bruteforce.AsyncResult(data['task_id'])
+    usnTask = UserTasks.objects(task_id=data['task_id'])
+    if usnTask:
+        if usnTask.task_status!=Constants.USER_TASK_RUNNING:
+            task.forget()
+            if usnTask.task_status==Constants.USER_TASK_FAILED:
+                return  {
+                    'state': "FAILED",
+                    'current': 1,
+                    'total': 1,
+                    'status': 'Couldn\'t unlock'
+                }
+            else:
+                usnData = UsnData(usn=usnTask.usn).exclude('dob').first()
+                if usnData:
+                    return {
+                        'state': "SUCCESS",
+                        'current': 1,
+                        'total': 1,
+                        'status': 'Done',
+                        'result' : usnData.name
+                    }
+
     if task.state == 'PENDING':
         # job did not start yet
         response = {

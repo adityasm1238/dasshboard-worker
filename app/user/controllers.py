@@ -36,7 +36,7 @@ def task():
         return {'task_code':1},200
     return {'task_code':0},200
 
-@user.route('/status',methods=['GET'])
+@user.route('/status',methods=['POST'])
 @jwt_required()
 @handleErrors()
 def status():

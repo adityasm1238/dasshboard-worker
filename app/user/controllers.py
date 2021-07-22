@@ -49,8 +49,7 @@ def status():
             if usnTask.task_status==Constants.USER_TASK_FAILED:
                 return  {
                     'state': "FAILED",
-                    'current': 1,
-                    'total': 1,
+                    'per': 100,
                     'status': 'Couldn\'t unlock',
                     'usn':usnTask.usn
                 }
@@ -59,8 +58,7 @@ def status():
                 if usnData:
                     return {
                         'state': "SUCCESS",
-                        'current': 1,
-                        'total': 1,
+                        'per': 100,
                         'status': 'Done',
                         'usn':usnData.usn,
                         'result' : usnData.name
@@ -70,16 +68,14 @@ def status():
         # job did not start yet
         response = {
             'state': task.state,
-            'current': 0,
-            'total': 1,
+            'per': 0,
             'usn':'Loading..',
             'status': 'Server is busy'
         }
     elif task.state != 'FAILURE':
         response = {
             'state': task.state,
-            'current': task.info.get('current', 0),
-            'total': task.info.get('total', 1),
+            'per': task.info.get('per', 0),
             'usn': task.info.get('usn', 'Loading'),
             'status': task.info.get('status', '')
         }
@@ -89,8 +85,7 @@ def status():
         # something went wrong in the background job
         response = {
             'state': task.state,
-            'current': 1,
-            'total': 1,
+            'per': 100,
             'usn':'Error',
             'status': str(task.info),  # this is the exception raised
         }

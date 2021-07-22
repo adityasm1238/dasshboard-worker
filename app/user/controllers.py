@@ -51,7 +51,8 @@ def status():
                     'state': "FAILED",
                     'current': 1,
                     'total': 1,
-                    'status': 'Couldn\'t unlock'
+                    'status': 'Couldn\'t unlock',
+                    'usn':usnTask.usn
                 }
             else:
                 usnData = UsnData.objects(usn=usnTask.usn).exclude('dob').first()
@@ -61,6 +62,7 @@ def status():
                         'current': 1,
                         'total': 1,
                         'status': 'Done',
+                        'usn':usnData.usn,
                         'result' : usnData.name
                     }
 
@@ -70,13 +72,15 @@ def status():
             'state': task.state,
             'current': 0,
             'total': 1,
-            'status': 'Pending...'
+            'usn':'Loading..',
+            'status': 'Server is busy'
         }
     elif task.state != 'FAILURE':
         response = {
             'state': task.state,
             'current': task.info.get('current', 0),
             'total': task.info.get('total', 1),
+            'usn': task.info.get('usn', 'Loading'),
             'status': task.info.get('status', '')
         }
         if 'result' in task.info:
@@ -87,6 +91,7 @@ def status():
             'state': task.state,
             'current': 1,
             'total': 1,
+            'usn':'Error',
             'status': str(task.info),  # this is the exception raised
         }
     return jsonify(response)

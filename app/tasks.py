@@ -11,7 +11,7 @@ from app.constants import Constants
 def bruteforce(self,usn):
     newTask = UsnTasks(usn=usn,task_id=str(self.request.id),created=datetime.utcnow())
     newTask.save()
-    cb = partial(callBack,instance=self)
+    cb = partial(callBack,instance=self,usn=usn)
     details = Scraper.findDob(usn,publishProgres=cb)
     if not details:
         failed = FailedUsn(usn=usn)
@@ -25,7 +25,7 @@ def bruteforce(self,usn):
     UsnTasks.objects(usn=usn).update(set__task_status=Constants.USER_TASK_SUCCESS)
     return {'current': (367*3), 'total': (367*3), 'status': 'success'}
 
-def callBack(instance,cur,msg):
+def callBack(instance,usn,cur,msg):
     instance.update_state(state='PROGRESS',
                           meta={'current': cur, 'total': (367*3),
-                                'status': msg})
+                                'status': msg,'usn':usn})

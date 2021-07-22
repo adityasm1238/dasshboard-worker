@@ -17,15 +17,15 @@ def bruteforce(self,usn):
         failed = FailedUsn(usn=usn)
         failed.save()
         UsnTasks.objects(usn=usn).update(set__task_status=Constants.USER_TASK_FAILED)
-        return {'current': (367*3), 'total': (367*3), 'status': 'failed'}
+        return {'per': 100, 'status': 'Failed'}
     details['dob'] = fernet.encrypt(details['dob'].encode())
     details['usn'] = usn
     usnData = UsnData(**details)
     usnData.save()
     UsnTasks.objects(usn=usn).update(set__task_status=Constants.USER_TASK_SUCCESS)
-    return {'current': (367*3), 'total': (367*3), 'status': 'success'}
+    return {'per': 100, 'status': 'Done'}
 
 def callBack(instance,usn,cur,msg):
     instance.update_state(state='PROGRESS',
-                          meta={'current': cur, 'total': (367*3),
+                          meta={'per': cur//(367*3),
                                 'status': msg,'usn':usn})

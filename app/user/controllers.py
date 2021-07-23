@@ -7,6 +7,7 @@ from app.error import handleErrors
 from app.models import UserTasks,UsnData,UsnTasks,FailedUsn
 from app.tasks import bruteforce
 from app.constants import Constants
+from app.scraper import Utils
 
 user = Blueprint('user',__name__,url_prefix='/user')
 
@@ -41,54 +42,39 @@ def task():
 @handleErrors()
 def status():
     data = request.get_json()
-    task = bruteforce.AsyncResult(data['task_id'])
-    usnTask = UsnTasks.objects(task_id=data['task_id']).first()
-    if usnTask:
-        if usnTask.task_status!=Constants.USER_TASK_RUNNING:
-            task.forget()
-            if usnTask.task_status==Constants.USER_TASK_FAILED:
-                return  {
-                    'state': "FAILED",
-                    'per': 100,
-                    'status': 'Couldn\'t unlock',
-                    'usn':usnTask.usn
-                }
-            else:
-                usnData = UsnData.objects(usn=usnTask.usn).exclude('dob').first()
-                if usnData:
-                    return {
-                        'state': "SUCCESS",
+    task_ids = data['task_ids']
+    res = {}
+    usnTasks = UsnTasks.objects(task_id__in=task_ids)
+    if len(usnTasks)>0:
+        for usnTask in usnTasks:
+            task = bruteforce.AsyncResult(str(usnTask.task_id))
+            res[str(usnTask.task_id)] = Utils.getStatus(task)
+            if usnTask.task_status!=Constants.USER_TASK_RUNNING:
+                task.forget()
+                try:
+                    task_ids.remove(str(usnTask.task_id))
+                except:
+                    pass
+                if usnTask.task_status==Constants.USER_TASK_FAILED:
+                    res[str(usnTask.task_id)]= {
+                        'state': "FAILED",
                         'per': 100,
-                        'status': 'Done',
-                        'usn':usnData.usn,
-                        'result' : usnData.name
+                        'status': 'Couldn\'t unlock',
+                        'usn':usnTask.usn
                     }
-
-    if task.state == 'PENDING':
-        # job did not start yet
-        response = {
-            'state': task.state,
-            'per': 0,
-            'usn':'Loading..',
-            'status': 'Server is busy'
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'per': task.info.get('per', 0),
-            'usn': task.info.get('usn', 'Loading'),
-            'status': task.info.get('status', '')
-        }
-        if 'result' in task.info:
-            response['result'] = task.info['result']
-    else:
-        # something went wrong in the background job
-        response = {
-            'state': task.state,
-            'per': 100,
-            'usn':'Error',
-            'status': str(task.info),  # this is the exception raised
-        }
-    return jsonify(response)
+                else:
+                    usnData = UsnData.objects(usn=usnTask.usn).exclude('dob').first()
+                    if usnData:
+                        res[str(usnTask.task_id)]= {
+                            'state': "SUCCESS",
+                            'per': 100,
+                            'status': 'Done',
+                            'usn':usnData.usn,
+                            'result' : usnData.name
+                        }
+    for task_id in task_ids:
+        task = bruteforce.AsyncResult(task_id)
+        res[str(usnTask.task_id)] = Utils.getStatus(task)
+    return jsonify(res)
 
     

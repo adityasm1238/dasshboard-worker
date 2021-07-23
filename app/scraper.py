@@ -1,6 +1,38 @@
 from fixedrobo import WebScraper
 import time
 
+from werkzeug.wrappers import response
+
+class Utils:
+    @staticmethod
+    def getStatus(task):
+        if task.state == 'PENDING':
+            # job did not start yet
+            return {
+                'state': task.state,
+                'per': 0,
+                'usn':'Loading..',
+                'status': 'Server is busy'
+            }
+        if task.state != 'FAILURE':
+            response =  {
+                'state': task.state,
+                'per': task.info.get('per', 0),
+                'usn': task.info.get('usn', 'Loading'),
+                'status': task.info.get('status', '')
+            }
+            if 'result' in task.info:
+                response['result'] = task.info['result']
+            return response
+
+        # something went wrong in the background job
+        return {
+            'state': task.state,
+            'per': 100,
+            'usn':'Error',
+            'status': str(task.info),  # this is the exception raised
+        }
+
 class Scraper:
     @classmethod
     def findDob(cls,usn,verbose=False,publishProgres=None):

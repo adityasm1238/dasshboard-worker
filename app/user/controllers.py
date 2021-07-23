@@ -41,7 +41,7 @@ def task():
                 return {'task_code':Constants.TASK_STARTED,'task_id':task.id},200
             return {'task_code':Constants.TASK_STARTED,'task_id':runningTask.task_id},200
         return {'task_code':Constants.TASK_DATA_FAILED},200
-    return {'task_code':Constants.TASK_DATA_FAILED},200
+    return {'task_code':Constants.TASK_DATA_EXISTS},200
 
 @user.route('/status',methods=['POST'])
 @jwt_required()

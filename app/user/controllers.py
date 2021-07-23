@@ -3,7 +3,7 @@ from flask import Blueprint,request,jsonify
 from flask_jwt_extended import get_jwt_identity,jwt_required
 from datetime import datetime,timedelta
 
-from app.error import handleErrors
+from app.error import AppError, handleErrors
 from app.models import UserTasks,UsnData,UsnTasks,FailedUsn
 from app.tasks import bruteforce
 from app.constants import Constants
@@ -17,25 +17,31 @@ user = Blueprint('user',__name__,url_prefix='/user')
 @handleErrors()
 def task():
     data = request.get_json()
-    userTask = UserTasks.objects(by=get_jwt_identity(),usn=data['usn'])
-    if not userTask:
-        userTask = UserTasks(by=get_jwt_identity(),usn=data['usn'])
+    usn = data['usn']
+    id_ = get_jwt_identity()
+    userTask = UserTasks.objects(by=id_)
+    usns = [str(x.usn) for x in userTask]
+    running = UsnTasks.objects(usn__in=usns,task_status=Constants.USER_TASK_RUNNING)
+    if len(running)>1:
+        return AppError.badRequest('Can run at most 2 tasks at a time')
+    if usn not in usns:
+        userTask = UserTasks(by=get_jwt_identity(),usn=usn)
         userTask.save()
-    usnData = UsnData.objects(usn=data['usn'])
+    usnData = UsnData.objects(usn=usn)
     if not usnData:
-        failedData = FailedUsn.objects(usn=data['usn']).first()
+        failedData = FailedUsn.objects(usn=usn).first()
         if not failedData:
-            runningTask = UsnTasks.objects(usn=data['usn']).first()
+            runningTask = UsnTasks.objects(usn=usn).first()
             if not runningTask:
-                task = bruteforce.delay(data['usn'])
-                return {'task_code':2,'task_id':task.id},200
+                task = bruteforce.delay(usn)
+                return {'task_code':Constants.TASK_STARTED,'task_id':task.id},200
             if runningTask.created - datetime.utcnow()>timedelta(days=1):
                 runningTask.delete()
-                task = bruteforce.delay(data['usn'])
-                return {'task_code':2,'task_id':task.id},200
-            return {'task_code':2,'task_id':runningTask.task_id},200
-        return {'task_code':1},200
-    return {'task_code':0},200
+                task = bruteforce.delay(usn)
+                return {'task_code':Constants.TASK_STARTED,'task_id':task.id},200
+            return {'task_code':Constants.TASK_STARTED,'task_id':runningTask.task_id},200
+        return {'task_code':Constants.TASK_DATA_FAILED},200
+    return {'task_code':Constants.TASK_DATA_FAILED},200
 
 @user.route('/status',methods=['POST'])
 @jwt_required()

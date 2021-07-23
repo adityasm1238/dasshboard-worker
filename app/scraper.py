@@ -59,7 +59,7 @@ class Scraper:
     @classmethod
     def month_converter(cls,month):
         months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        return months[month+ 1]
+        return months[month- 1]
     
     @classmethod
     def addSuffix(cls,number):

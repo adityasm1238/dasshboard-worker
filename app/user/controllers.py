@@ -74,7 +74,7 @@ def status():
                         }
     for task_id in task_ids:
         task = bruteforce.AsyncResult(task_id)
-        res[str(usnTask.task_id)] = Utils.getStatus(task)
+        res[str(task_id)] = Utils.getStatus(task)
     return jsonify(res)
 
     

@@ -27,5 +27,5 @@ def bruteforce(self,usn):
 
 def callBack(instance,usn,cur,msg):
     instance.update_state(state='PROGRESS',
-                          meta={'per': cur//(367*3),
+                          meta={'per': (cur*100)//(367*3),
                                 'status': msg,'usn':usn})

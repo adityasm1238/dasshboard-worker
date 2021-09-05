@@ -1,4 +1,3 @@
-from os import name
 from flask import Blueprint,request,jsonify
 from flask_jwt_extended import get_jwt_identity,jwt_required
 from datetime import datetime,timedelta
@@ -83,4 +82,8 @@ def status():
         res[str(task_id)] = Utils.getStatus(task)
     return jsonify(res)
 
-    
+@user.route('/scrape',methods=['POST'])
+@jwt_required()
+@handleErrors()
+def scrape():
+    return 'OK',200
